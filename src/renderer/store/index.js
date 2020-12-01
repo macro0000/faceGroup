@@ -11,7 +11,7 @@ export default new Vuex.Store({
   modules,
   plugins: [
     createPersistedState(),
-    createSharedMutations()
+    // createSharedMutations()   //多标签使用vuex
   ],
   strict: process.env.NODE_ENV !== 'production'
 })
