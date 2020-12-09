@@ -1,60 +1,149 @@
 <template>
-  <div class="download-container sureDrag">
-    <button @click="openFileHandler">读取文件</button>
-    <button @click="getDirHandler">读取文件列表</button>
-    <button @click="chooseWorkSpace">选择文件列表</button>
+  <right-menu @action="rightMenuAction" :count="fileChooseCount">
     <el-row>
-      <el-col :span="12" :offset="6">
-        <el-input
-          placeholder="请选择工作空间"
-          v-model="this.$store.getters.rootPath"
-          @click="getDirHandler"
-        ></el-input>
+      <el-col>
+       
+        <div v-if="fileGroup.length < 1" style="">请选择工作空间</div>
+        <div v-else v-for="(item, index) in fileGroup" :key="index">
+          <img-group
+            :id="`group_${index}`"
+            :pics="item.pics"
+            :groupName="item.name"
+            @click="choose($event, index)"
+          >
+            <cc-input
+              :value="item.name"
+              @change="changeName($event, index)"
+            ></cc-input>
+          </img-group>
+        </div>
       </el-col>
     </el-row>
-
-    <div class="images" v-for="item in this.$store.getters.fileList">
-      <el-card :body-style="{ padding: '0px' }">
-        <img :src="'file://' + item.path" class="image" width="100%" height="100%"/>
-        <div style="padding: 14px">
-          <span>{{ item.name }}</span>
-          <div class="bottom clearfix">
-            <time class="time">{{ new Date().getTime() }}</time>
-            <el-button type="text" class="button">分组</el-button>
-          </div>
+    <el-drawer
+      :visible.sync="drawer"
+      :direction="direction"
+      :title="directionTitle"
+    >
+      <div class="groupList">
+        <div
+          @click="doDirectionMethod(index)"
+          v-for="(item, index) in fileGroup"
+          :key="index"
+        >
+          <el-card class="box-card">
+            <el-row>
+              <el-col :span="7">
+                <el-avatar
+                  shape="square"
+                  :size="50"
+                  :fit="fit"
+                  :src="item.pics[0] ? 'file://' + item.pics[0].path : ''"
+                ></el-avatar>
+              </el-col>
+              <el-col :span="17">
+                <el-row>{{ item.name }}</el-row>
+                <el-row>{{ "目前" + item.pics.length + "张" }}</el-row>
+                <el-row>-</el-row>
+              </el-col>
+            </el-row>
+          </el-card>
         </div>
-      </el-card>
-    </div>
-
-  </div>
+      </div>
+    </el-drawer>
+  </right-menu>
 </template>
 
 <script>
+import RightMenu from "./RightMenu";
+import ImgGroup from "./ImgGroup";
+import CcInput from "./CcInput";
 export default {
+  components: {
+    RightMenu,
+    ImgGroup,
+    CcInput,
+  },
   data: function () {
-    return {};
+    return {
+      drawer: false,
+      direction: "ltr",
+      directionMethod: "",
+      directionTitle: "",
+      fit: "cover",
+    };
+  },
+  computed: {
+    fileGroup: function(){
+      return this.$store.getters.fileGroup
+    },
+    fileList: function () {
+      return this.$store.getters.fileList;
+    },
+    fileChooseCount: function () {
+      return this.$store.getters.fileChooseCount;
+    },
   },
   methods: {
-    chooseWorkSpace() {
-      this.$store.dispatch("chooseWorkSpace");
+    choose(index, group) {
+      this.$store.dispatch("choose", `${group}-${index}`);
     },
-    openFileHandler() {
-      const path =
-        "C:/Users/macrocc/Desktop/html 样例展示/10402.request.body.json";
-      this.$store.dispatch("readFile", path);
+    rightMenuAction(action) {
+      switch (action) {
+        case "createGroup":
+          this.$store.dispatch("createGroup");
+          break;
+        case "moveToGroup":
+          this.drawer = true;
+          this.directionMethod = "moveTo";
+          this.directionTitle = "移动至";
+          break;
+        case "jump":
+          this.drawer = true;
+          this.directionTitle = "定位至";
+          this.directionMethod= '';
+          break;
+        case "delete":
+          this.drawer = true;
+          this.directionMethod = "deleteGroup";
+          this.directionTitle = "删除该";
+          break;
+      }
     },
-    getDirHandler() {
-      const path = "C:/Users/macrocc/Desktop/html 样例展示/";
-      this.$store.dispatch("getDir", path);
+    doDirectionMethod(index) {
+       console.log(index)
+      if (this.directionMethod && this.directionMethod != "")
+        this.$store.dispatch(this.directionMethod, index);
+      else {
+        console.log(index)
+        location.hash =  `group_${index}`;
+        history.replaceState(
+          null,
+          document.title,
+          location.pathname + location.search
+        );
+        console.log(location)
+      }
+      this.drawer= false;
     },
+    changeName(name, index) {
+      this.$store.dispatch("changeGroupName", { index, name });
+    },
+    cleanGroup() {
+      this.$store.dispatch("cleanGroup");
+    },
+    handleClose() {},
   },
 };
 </script>
-<style type="text/css">
-.images{
-    width: 200px;
-    height: 100%;
-    float: left;
-    padding: 10px;
+<style lang="scss">
+.groupList {
+  height: 90vh;
+  overflow-y: auto;
+  .box-card {
+    margin: 1rem;
+    .el-avatar > img {
+      height: 8vw;
+    }
+  }
 }
 </style>

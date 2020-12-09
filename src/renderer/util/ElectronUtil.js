@@ -8,19 +8,22 @@ const _promise = (data, call) => {
 
 const electronUtil = {
 
-    chooseSpace: () => {
+    chooseDirectory: ({ title, defaultPath }) => {
         return _promise({}, (s, e) => {
             try {
-                dialog.showOpenDialog({ properties: ['openDirectory'] }, (res) => {
-                    let path = res[0];
-                    s(path)
+                dialog.showOpenDialog({ title, defaultPath, properties: ['openDirectory'] }, (res) => {
+                    if (res) {
+                        let path = res[0];
+                        s(path)
+                    } else {
+                        e({ message: '已取消选择' })
+                    }
                 })
             } catch (error) {
                 e(error)
             }
         })
-    },
-
+    }
 };
 
 export default electronUtil;

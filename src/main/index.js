@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 
 /**
  * Set `__static` path to static files in production
@@ -31,7 +31,34 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+  require('./menu.js');
 }
+
+
+// 开启vip新窗口
+
+function openWindow(arg) {
+  var vipWin = new BrowserWindow({
+    width: 400,
+    height: 400,
+    parent: mainWindow, // win是主窗口
+    // frame:false,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+  vipWin.loadURL(winURL + `#/${arg}`);
+  vipWin.on('closed', () => { vipWin = null })
+}
+
+ipcMain.on('openWindow', (event, arg) =>
+  openWindow(arg)
+);
+
+ipcMain.on('quit', event => {
+  app.quit()
+});
+
 
 app.on('ready', createWindow)
 
