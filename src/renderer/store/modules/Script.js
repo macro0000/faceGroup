@@ -25,6 +25,25 @@ const mutations = {
                 break;
         }
     },
+    CHOOSE_TO(state, index) {
+        const local = index.split('-');
+        var toFlag = false;
+        for(let g = local[0] ;g>-1;g--){
+            const group = state.fileGroup[g];
+            for(let p = group.pics.length-1;p>-1;p--){
+                if(`${g}-${p}` === index){
+                    toFlag = true;
+                }
+                if(toFlag){
+                    if(state.fileGroup[g].pics[p]['status'] === 'choose'){
+                        toFlag = false;
+                        return;
+                    }
+                    state.fileGroup[g].pics[p]['status'] = 'choose'
+                }
+            }
+        }
+    },
     SET_FILE_LIST({ rootPath, fileGroup }, dirs) {
         let iamges = dirs.filter((name) => {
             return name != '.face'
@@ -82,7 +101,6 @@ const mutations = {
     DELETE_GROUP(state, index) {
         const deleteGroup = state.fileGroup.splice(index, 1)[0];
         if (deleteGroup.name === groupName && deleteGroup.pics.length == 0) {
-
             return;
         }
         if (state.fileGroup[state.fileGroup.length - 1].name === groupName) {
@@ -101,6 +119,9 @@ const mutations = {
                 })
             });
         }
+    },
+    DELETE_EMPTY_GROUP(state){
+        state.fileGroup = state.fileGroup.filter((e)=>e.pics.length != 0)
     },
     CLEAR(state) {
         state.rootPath = ''
@@ -153,7 +174,7 @@ const actions = {
                                 grouphistroy.push({ name: groupName, pics: res })
                             }
                             commit('SET_ROOT_PATH', rootPathHostroy);
-                            commit('SET_FILE_GROUP', grouphistroy)
+                            commit('SET_FILE_GROUP', grouphistroy);
                             resolve(rootPathHostroy);
                         })
                     }).catch((err) => {
@@ -217,6 +238,9 @@ const actions = {
     choose({ commit, state }, index) {
         commit('CHOOSE', index);
     },
+    chooseto({ commit }, index) {
+        commit('CHOOSE_TO', index);
+    },
     cleanGroup({ commit, state }) {
         return new Promise((resolve, reject) => {
             try {
@@ -238,6 +262,9 @@ const actions = {
     },
     deleteGroup({ commit }, index) {
         commit('DELETE_GROUP', index);
+    },
+    deleteEmptyGroup({commit}){
+        commit('DELETE_EMPTY_GROUP');
     }
 }
 

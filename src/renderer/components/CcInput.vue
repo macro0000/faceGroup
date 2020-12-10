@@ -41,7 +41,7 @@ export default {
   div {
     --field-size: 30px;
     --field-border-color: #ccc;
-    margin: 0 auto;
+    margin: 1rem auto;
     font-size: 1rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
       0 10px 10px -5px rgba(0, 0, 0, 0.04);

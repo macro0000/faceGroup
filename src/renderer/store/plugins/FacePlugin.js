@@ -11,6 +11,9 @@ const FacePlugin = store => {
             case "CREATE_GROUP":
             case "CHANGE_GROUP_NAME":
             case "DELETE_GROUP":
+            case "CHOOSE":
+            case "CHOOSE_TO":
+            case "DELETE_EMPTY_GROUP":
                 const saveVa = state.Script;
                 console.log(saveVa.rootPath)
                 if (saveVa.rootPath && saveVa.rootPath != '') {

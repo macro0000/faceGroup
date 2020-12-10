@@ -1,13 +1,13 @@
 <template>
   <div class="ImgGroup">
     <div :id="id"></div>
-    <el-divider content-position="left" >
+    <div class="title" :count="`${pics.length}张，选中${choose}张`">
       <slot></slot>
-    </el-divider>
+    </div>
 
     <div
       :class="'images ' + item.status"
-      v-for="(item, index) in this.pics"
+      v-for="(item, index) in pics"
       :key="index"
       @click="clickHandle(index)"
     >
@@ -23,7 +23,7 @@
           <span>{{ item.name }}</span>
           <div class="bottom clearfix">
             <time class="time"></time>
-            <el-button type="text" class="button">{{groupName}}</el-button>
+            <el-button type="text" class="button">{{ groupName }}</el-button>
           </div>
         </div>
       </el-card>
@@ -33,9 +33,14 @@
 
 <script>
 export default {
-  props: ["pics", "groupName","id"],
+  props: ["pics", "groupName", "id"],
   data: function () {
     return {};
+  },
+  computed:{
+    choose:function(){
+      return this.pics.filter(e => e.status ==='choose' ).length
+    }
   },
   methods: {
     clickHandle: function (index) {
@@ -47,14 +52,40 @@ export default {
 
 <style lang='scss'>
 .ImgGroup {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  -khtml-user-select: none;
+  user-select: none;
   clear: both;
   padding: 0.1rem;
+  .title {
+    position: relative;
+    padding-left: 5rem;
+    font-size: 1.9em;
+    display: flex;
+    &:before {
+      content: "";
+      position: absolute;
+      left: 13px;
+      right: 13px;
+      top: 50%;
+      height: 2px;
+      background: #c2cada;
+    }
+    &:after {
+      font-size: 0.6em;
+      color: #9f9b9b;
+      content: attr(count);
+    }
+  }
   .images {
     width: 200px;
     float: left;
     padding: 10px;
   }
   .choose {
+    filter: brightness(90%);
     background-color: #cac0ea;
   }
 }

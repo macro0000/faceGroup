@@ -2,7 +2,6 @@
   <right-menu @action="rightMenuAction" :count="fileChooseCount">
     <el-row>
       <el-col>
-       
         <div v-if="fileGroup.length < 1" style="">请选择工作空间</div>
         <div v-else v-for="(item, index) in fileGroup" :key="index">
           <img-group
@@ -70,11 +69,12 @@ export default {
       directionMethod: "",
       directionTitle: "",
       fit: "cover",
+      nowKey:''
     };
   },
   computed: {
-    fileGroup: function(){
-      return this.$store.getters.fileGroup
+    fileGroup: function () {
+      return this.$store.getters.fileGroup;
     },
     fileList: function () {
       return this.$store.getters.fileList;
@@ -83,9 +83,24 @@ export default {
       return this.$store.getters.fileChooseCount;
     },
   },
+  mounted: function () {
+    document.onkeydown = (e) => {
+      this.nowKey = e.key.toLowerCase();
+    };
+    document.onkeyup = (e) => {
+      this.nowKey = '';
+    };
+  },
   methods: {
     choose(index, group) {
-      this.$store.dispatch("choose", `${group}-${index}`);
+      switch(this.nowKey){
+        case 'shift':
+          this.$store.dispatch("chooseto", `${group}-${index}`);
+          break;
+        default:
+          this.$store.dispatch("choose", `${group}-${index}`);
+          break;
+      }
     },
     rightMenuAction(action) {
       switch (action) {
@@ -100,30 +115,33 @@ export default {
         case "jump":
           this.drawer = true;
           this.directionTitle = "定位至";
-          this.directionMethod= '';
+          this.directionMethod = "";
           break;
         case "delete":
           this.drawer = true;
           this.directionMethod = "deleteGroup";
           this.directionTitle = "删除该";
           break;
+        case "deleteEmpty":
+          this.$store.dispatch("deleteEmptyGroup");
+          break;
       }
     },
     doDirectionMethod(index) {
-       console.log(index)
+      console.log(index);
       if (this.directionMethod && this.directionMethod != "")
         this.$store.dispatch(this.directionMethod, index);
       else {
-        console.log(index)
-        location.hash =  `group_${index}`;
+        console.log(index);
+        location.hash = `group_${index}`;
         history.replaceState(
           null,
           document.title,
           location.pathname + location.search
         );
-        console.log(location)
+        console.log(location);
       }
-      this.drawer= false;
+      this.drawer = false;
     },
     changeName(name, index) {
       this.$store.dispatch("changeGroupName", { index, name });
@@ -136,6 +154,7 @@ export default {
 };
 </script>
 <style lang="scss">
+
 .groupList {
   height: 90vh;
   overflow-y: auto;

@@ -54,11 +54,8 @@
     }
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^2.0.0",
     "axios": "^0.18.0",
-    "canvas": "^2.6.1",
     "element-ui": "^2.14.1",
-    "face-api.js": "^0.22.2",
     "vue": "^2.5.16",
     "vue-electron": "^1.0.6",
     "vue-router": "^3.0.1",

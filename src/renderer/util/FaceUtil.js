@@ -1,5 +1,5 @@
-import * as faceapi from 'face-api.js';
-import { createCanvas } from 'face-api.js';
+// import * as faceapi from 'face-api.js';
+// import { createCanvas } from 'face-api.js';
 
 
 const _promise = (data, call) => {
@@ -14,16 +14,16 @@ const _promise = (data, call) => {
 
 const FaceUtil = {
     getCNN: (path) => {
-        var canvas = createCanvas(300, 300);
-        canvas.toDataURL("file://C://Users//macrocc//Desktop//faceGrouop//蓝底照片.jpg")
+        // var canvas = createCanvas(300, 300);
+        // canvas.toDataURL("file://C://Users//macrocc//Desktop//faceGrouop//蓝底照片.jpg")
 
-        const minConfidence = 0.8
-        const fullFaceDescriptions = faceapi.allFaces(canvas, minConfidence)
-        fullFaceDescriptions.then((res) => {
-            console.log(res)
-        }).catch((err) => {
-            console.log(err)
-        })
+        // const minConfidence = 0.8
+        // const fullFaceDescriptions = faceapi.allFaces(canvas, minConfidence)
+        // fullFaceDescriptions.then((res) => {
+        //     console.log(res)
+        // }).catch((err) => {
+        //     console.log(err)
+        // })
     },
 
 };
