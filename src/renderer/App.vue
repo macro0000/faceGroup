@@ -5,23 +5,25 @@
 </template>
 
 <script>
-const { ipcRenderer,app } = require("electron");
+const { ipcRenderer, app } = require("electron");
 export default {
   name: "face",
   mounted: function () {
-
-    const end= 1613664000000;
+    const end = 1613664000000;
     const now = new Date().getTime();
-    if(now > end){
-      ipcRenderer.send('quit');
+    if (now > end) {
+      ipcRenderer.send("quit");
     }
+    setInterval(() => {
+      document.title = `当前目录：${this.$store.getters.rootPath}(共${
+        this.$store.getters.count
+      }/${this.$store.getters.fileChooseCount}张-${this.$store.getters.GroupCount}组) 当前时间为：${new Date().format("hh:mm:ss")}`;
+    }, 100);
 
     ipcRenderer.on("preferences", (event, arg) => {
       switch (arg) {
         case "chooseWrokSpace":
-          this.$store.dispatch("chooseWorkSpace").then(() => {
-            document.title = this.$store.getters.rootPath;
-          });
+          this.$store.dispatch("chooseWorkSpace");
           break;
         case "output":
           this.$store.dispatch("outputFile").then(({ path, groupl, filel }) => {
@@ -42,7 +44,7 @@ export default {
     ipcRenderer.on("about", (event, arg) => {
       switch (arg) {
         case "about":
-          ipcRenderer.send('openWindow',arg);
+          ipcRenderer.send("openWindow", arg);
           break;
       }
     });

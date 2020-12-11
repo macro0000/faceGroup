@@ -69,7 +69,7 @@ export default {
       directionMethod: "",
       directionTitle: "",
       fit: "cover",
-      nowKey:''
+      nowKey: "",
     };
   },
   computed: {
@@ -88,13 +88,13 @@ export default {
       this.nowKey = e.key.toLowerCase();
     };
     document.onkeyup = (e) => {
-      this.nowKey = '';
+      this.nowKey = "";
     };
   },
   methods: {
     choose(index, group) {
-      switch(this.nowKey){
-        case 'shift':
+      switch (this.nowKey) {
+        case "shift":
           this.$store.dispatch("chooseto", `${group}-${index}`);
           break;
         default:
@@ -120,10 +120,18 @@ export default {
         case "delete":
           this.drawer = true;
           this.directionMethod = "deleteGroup";
-          this.directionTitle = "删除该";
+          this.directionTitle = "删除";
           break;
         case "deleteEmpty":
           this.$store.dispatch("deleteEmptyGroup");
+          break;
+        case "revoke":
+          this.$store.dispatch("revokeChoose");
+          break;
+        case "reversalGroup":
+          this.drawer = true;
+          this.directionMethod = "reversalChoose";
+          this.directionTitle = "反选";
           break;
       }
     },
@@ -154,7 +162,6 @@ export default {
 };
 </script>
 <style lang="scss">
-
 .groupList {
   height: 90vh;
   overflow-y: auto;

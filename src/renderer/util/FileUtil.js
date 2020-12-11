@@ -1,9 +1,7 @@
 import fs from 'fs'
-const _fs = require("fs");
-
 const _promise = (path, call) => {
     return new Promise(function (resolve, reject) {
-        _fs.access(path, (err) => {
+        fs.access(path, (err) => {
             if (err) {
                 reject(err)
             } else {
@@ -28,6 +26,29 @@ const copy = function (src, dst) {
     readable.pipe(writable);
 };
 
+
+const fileDisplay = function (filePath) {
+    var result = Array();
+    //根据文件路径读取文件，返回文件列表
+    const files = fs.readdirSync(filePath);
+    files.forEach((filename) => {
+        //获取当前文件的绝对路径
+        var filedir = `${filePath}\\${filename}`
+        //根据文件路径获取文件信息，返回一个fs.Stats对象
+
+        const stat = fs.lstatSync(filedir);
+        if (stat.isDirectory()) {
+            result.push.apply(result, fileDisplay(filedir));//递归，如果是文件夹，就继续遍历该文件夹下面的文件
+        } else {
+            result.push({
+                path: filedir,
+                name: filename
+            })
+        }
+    });
+    return result
+}
+
 const file = {
     /**
      * 创建，记录需要创建文件夹和文件内容
@@ -38,7 +59,7 @@ const file = {
                 let data = {
                     createTime: new Date().getTime(),
                 }
-                _fs.writeFileSync(path, JSON.stringify(data));
+                fs.writeFileSync(path, JSON.stringify(data));
                 resolve(data);
             } catch (error) {
                 reject(error);
@@ -52,7 +73,7 @@ const file = {
      */
     save: (path, data) => {
         return _promise(path, (s, e) => {
-            _fs.writeFileSync(path, data);
+            fs.writeFileSync(path, data);
             s()
         })
     },
@@ -69,7 +90,6 @@ const file = {
             })
             fileReadStream.on('end', () => {
                 console.log(" --- 结束 ---");
-                console.log(str);
                 s(str)
             })
             fileReadStream.on('error', (error) => {
@@ -81,9 +101,28 @@ const file = {
     /**
      * 读取列表
      */
-    list: (path) => {
-        return _promise(path, (s, e) => {
-            s(_fs.readdirSync(path))
+    list: (rootPath) => {
+        return _promise(rootPath, (s, e) => {
+            const files = fileDisplay(rootPath);
+            const result = files.filter(({path,name}) => {
+                const suffix = name.split('.')[1] || 'dir';
+                const suffixEnum = ["bmp", "jpg", "png", "tif", "gif", "pcx", "tga", "exif", 'fpx', 'svg', 'psd',
+                    'cdr', 'pcd', 'dxf', 'ufo', 'eps', 'ai', "raw", "WMF", "webp", "avif"]
+                return suffixEnum.indexOf(suffix) > -1;
+            }).map(({path,name})=>{
+                const paths = path.replace(rootPath).split('\\')
+                paths.shift();
+                var group = paths[paths.length-2]||'未分组';
+                return {group,name,path};
+            })
+            var resultGroup = {}
+            result.forEach(({group,name,path}) => {
+                if(!resultGroup[group]){
+                    resultGroup[group] = [];
+                }
+                resultGroup[group].push({name,path})
+            });
+            s( resultGroup)
         })
     },
     outPut(fileGroup, path) {
@@ -105,9 +144,9 @@ const file = {
 
                 resolve({
                     path: rootpath, groupl: fileGroup.length, filel: fileGroup.reduce((accumulator, currentValue) => {
-                        if( typeof accumulator  == 'object'){
-                           return accumulator.pics.length + currentValue.pics.length;
-                        }else{
+                        if (typeof accumulator == 'object') {
+                            return accumulator.pics.length + currentValue.pics.length;
+                        } else {
                             return accumulator + currentValue.pics.length;
                         }
                     })

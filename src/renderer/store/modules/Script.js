@@ -1,6 +1,7 @@
 import FileUtil from '../../util/FileUtil'
 import ElectronUril from '../../util/ElectronUtil'
 import FaceUtil from '../../util/FaceUtil'
+import { stat } from 'fs';
 
 const groupName = '未分组';
 
@@ -28,14 +29,14 @@ const mutations = {
     CHOOSE_TO(state, index) {
         const local = index.split('-');
         var toFlag = false;
-        for(let g = local[0] ;g>-1;g--){
+        for (let g = local[0]; g > -1; g--) {
             const group = state.fileGroup[g];
-            for(let p = group.pics.length-1;p>-1;p--){
-                if(`${g}-${p}` === index){
+            for (let p = group.pics.length - 1; p > -1; p--) {
+                if (`${g}-${p}` === index) {
                     toFlag = true;
                 }
-                if(toFlag){
-                    if(state.fileGroup[g].pics[p]['status'] === 'choose'){
+                if (toFlag) {
+                    if (state.fileGroup[g].pics[p]['status'] === 'choose') {
                         toFlag = false;
                         return;
                     }
@@ -44,15 +45,24 @@ const mutations = {
             }
         }
     },
-    SET_FILE_LIST({ rootPath, fileGroup }, dirs) {
-        let iamges = dirs.filter((name) => {
-            return name != '.face'
+    REVOKE_CHOOSE(state) {
+        state.fileGroup.forEach(group => {
+            group.pics.forEach(pic => {
+                pic['status'] = 'normal'
+            })
         })
-        var fileList = iamges.map((name) => {
-            let path = `${rootPath}\\${name}`;
-            return { name, path, status: 'normal' }
+    },
+    REVERSAL_CHOOSE(state, id) {
+        state.fileGroup[id].pics.forEach(pic => {
+            switch (pic['status']) {
+                case 'normal':
+                    pic['status'] = 'choose';
+                    break;
+                case 'choose':
+                    pic['status'] = 'normal';
+                    break;
+            }
         })
-        fileGroup.push({ name: groupName, pics: fileList })
     },
     SET_FILE_GROUP(state, value) {
         state.fileGroup = value
@@ -120,8 +130,8 @@ const mutations = {
             });
         }
     },
-    DELETE_EMPTY_GROUP(state){
-        state.fileGroup = state.fileGroup.filter((e)=>e.pics.length != 0)
+    DELETE_EMPTY_GROUP(state) {
+        state.fileGroup = state.fileGroup.filter((e) => e.pics.length != 0)
     },
     CLEAR(state) {
         state.rootPath = ''
@@ -148,6 +158,17 @@ const getters = {
             })
         });
         return count;
+    },
+    count: state => { var count = 0;
+        state.fileGroup.forEach(element => {
+            element.pics.forEach(el => {
+                count++;
+            })
+        });
+        return count;
+    },
+    GroupCount: state => {
+        return state.fileGroup.length;
     }
 }
 
@@ -161,17 +182,29 @@ const actions = {
                         const rootPathHostroy = histroy.rootPath || '';
                         const grouphistroy = histroy.fileGroup || [];
                         dispatch('getDir', path).then((res) => {
-                            for (let x in grouphistroy) {
-                                const group = grouphistroy[x];
-                                for (let p in group.pics) {
-                                    let inx = res.indexOf(group.pics[p].name);
-                                    if (inx >= 0) {
-                                        res.splice(inx, 1);
+                            for (let n in res) {
+                                const groupNames = res[n].map(({ path, name }) => {
+                                    return name;
+                                })
+                                for (let x in grouphistroy) {
+                                    const group = grouphistroy[x];
+                                    for (let p in group.pics) {
+                                        let inx = groupNames.indexOf(group.pics[p].name);
+
+                                        console.log(group.pics[p].name,inx,groupNames,res[n])
+                                        if (inx >= 0) {
+                                            res[n][inx] = '.del'
+                                        }
                                     }
                                 }
                             }
-                            if (res.length > 0) {
-                                grouphistroy.push({ name: groupName, pics: res })
+                            for (let n in res) {
+                                res[n] = res[n].filter(del => {
+                                    return del != '.del'
+                                })
+                                if (res[n].length > 0) {
+                                    grouphistroy.push({ name: n, pics: res[n] })
+                                }
                             }
                             commit('SET_ROOT_PATH', rootPathHostroy);
                             commit('SET_FILE_GROUP', grouphistroy);
@@ -181,9 +214,17 @@ const actions = {
                         FileUtil.create(`${path}\\.face`).then((data) => {
                             console.log('文件不存在%o \r\n创建成功 %o', err, data);
                             dispatch('getDir', path).then((res) => {
+                                var group = []
+                                for (let x in res) {
+                                    const pics = res[x].map(e => {
+                                        return { ...e, ...{ status: 'normal' } }
+                                    })
+                                    group.push({ name: x, pics });
+
+                                }
                                 commit('CLEAR');
                                 commit('SET_ROOT_PATH', path);
-                                commit('SET_FILE_LIST', res)
+                                commit('SET_FILE_GROUP', group)
                                 resolve(path);
                             })
                         });
@@ -200,10 +241,10 @@ const actions = {
     getDir({ commit }, path) {
         return new Promise((resolve, reject) => {
             FileUtil.list(path).then((res) => {
-                try {
-                    res = res.filter(r => r != '.face')
-                    var mapped = res.map(function (el, i) {
-                        return { index: i, value: Number(el.match(/[0-9]+/g).reverse().join('.')) };
+                for (let x in res) {
+                    const group = res[x];
+                    var mapped = group.map(function ({ name, path }, i) {
+                        return { index: i, value: Number(name.match(/[0-9]+/g).reverse().join('.')) };
                     })
 
                     mapped.sort(function (a, b) {
@@ -211,12 +252,11 @@ const actions = {
                     });
 
                     var result = mapped.map(function (el) {
-                        return res[el.index];
+                        return group[el.index];
                     });
-                    resolve(result)
-                } catch (error) {
-                    reject(error)
+                    res[x] = result
                 }
+                resolve(res)
             })
         })
     },
@@ -263,8 +303,14 @@ const actions = {
     deleteGroup({ commit }, index) {
         commit('DELETE_GROUP', index);
     },
-    deleteEmptyGroup({commit}){
+    deleteEmptyGroup({ commit }) {
         commit('DELETE_EMPTY_GROUP');
+    },
+    revokeChoose({ commit }) {
+        commit('REVOKE_CHOOSE')
+    },
+    reversalChoose({ commit }, id) {
+        commit('REVERSAL_CHOOSE', id)
     }
 }
 

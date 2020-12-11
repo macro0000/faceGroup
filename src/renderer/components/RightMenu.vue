@@ -6,6 +6,8 @@
     >
       <div @click="action('createGroup')">使用现有选择({{count}})创建分组</div>
       <div @click="action('moveToGroup')">移动现有选择({{count}})到分组</div>
+      <div @click="action('revoke')">取消选择({{count}})</div>
+      <div @click="action('reversalGroup')">反选分组</div>
       <div @click="action('jump')">快速转跳</div>
       <div @click="action('deleteEmpty')">删除空分组</div>
       <div @click="action('delete')">删除</div>
