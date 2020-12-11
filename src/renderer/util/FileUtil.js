@@ -115,7 +115,7 @@ const file = {
                 var group = paths[paths.length-2]||'未分组';
                 return {group,name,path};
             })
-            var resultGroup = {}
+            var resultGroup = {};
             result.forEach(({group,name,path}) => {
                 if(!resultGroup[group]){
                     resultGroup[group] = [];

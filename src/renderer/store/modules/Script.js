@@ -191,7 +191,6 @@ const actions = {
                                     for (let p in group.pics) {
                                         let inx = groupNames.indexOf(group.pics[p].name);
 
-                                        console.log(group.pics[p].name,inx,groupNames,res[n])
                                         if (inx >= 0) {
                                             res[n][inx] = '.del'
                                         }
@@ -240,24 +239,32 @@ const actions = {
     },
     getDir({ commit }, path) {
         return new Promise((resolve, reject) => {
-            FileUtil.list(path).then((res) => {
-                for (let x in res) {
-                    const group = res[x];
-                    var mapped = group.map(function ({ name, path }, i) {
-                        return { index: i, value: Number(name.match(/[0-9]+/g).reverse().join('.')) };
-                    })
-
-                    mapped.sort(function (a, b) {
-                        return +(a.value > b.value) || +(a.value === b.value) - 1;
-                    });
-
-                    var result = mapped.map(function (el) {
-                        return group[el.index];
-                    });
-                    res[x] = result
-                }
-                resolve(res)
-            })
+            try {
+                FileUtil.list(path).then((res) => {
+                    for (let x in res) {
+                        const group = res[x];
+                        var mapped = group.map(function ({ name, path }, i) {
+                            try {
+                                return { index: i, value: Number(name.match(/[0-9]+/g).reverse().join('.')) };
+                            } catch (error) {
+                                return { index: i, value: 0 };
+                            }
+                            
+                        })
+                        mapped.sort(function (a, b) {
+                            return +(a.value > b.value) || +(a.value === b.value) - 1;
+                        });
+                        var result = mapped.map(function (el) {
+                            return group[el.index];
+                        });
+                        res[x] = result
+                    }
+                 
+                    resolve(res)
+                })
+            } catch (error) {
+                reject(error)
+            }
         })
     },
     getCNN({ commit, state }) {
