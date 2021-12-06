@@ -12,7 +12,7 @@ export default {
     const end = 1613664000000;
     const now = new Date().getTime();
     if (now > end) {
-      ipcRenderer.send("quit");
+      // ipcRenderer.send("quit");
     }
     setInterval(() => {
       document.title = `当前目录：${this.$store.getters.rootPath}(共${
